@@ -1,0 +1,13 @@
+../Core/Src/extmem_user_driver.c:130:41:USER_HyperRAM_ReadReg	3
+../Core/Src/extmem_user_driver.c:152:41:USER_HyperRAM_WriteReg	5
+../Core/Src/extmem_user_driver.c:193:41:USER_HyperRAM_ReadID	3
+../Core/Src/extmem_user_driver.c:213:34:EXTMEM_DRIVER_USER_Init	3
+../Core/Src/extmem_user_driver.c:252:34:EXTMEM_DRIVER_USER_DeInit	2
+../Core/Src/extmem_user_driver.c:265:34:EXTMEM_DRIVER_USER_Read	6
+../Core/Src/extmem_user_driver.c:295:34:EXTMEM_DRIVER_USER_Write	6
+../Core/Src/extmem_user_driver.c:324:34:EXTMEM_DRIVER_USER_EraseSector	1
+../Core/Src/extmem_user_driver.c:336:34:EXTMEM_DRIVER_USER_MassErase	1
+../Core/Src/extmem_user_driver.c:342:34:EXTMEM_DRIVER_USER_Enable_MemoryMappedMode	4
+../Core/Src/extmem_user_driver.c:372:34:EXTMEM_DRIVER_USER_Disable_MemoryMappedMode	3
+../Core/Src/extmem_user_driver.c:392:34:EXTMEM_DRIVER_USER_GetMapAddress	3
+../Core/Src/extmem_user_driver.c:405:34:EXTMEM_DRIVER_USER_GetInfo	3
