@@ -1,7 +1,0 @@
-../Core/Src/extmemloader_init.c:79:10:extmemloader_Init	5
-../Core/Src/extmemloader_init.c:140:6:SystemClock_Config	4
-../Core/Src/extmemloader_init.c:211:13:MX_SBS_Init	1
-../Core/Src/extmemloader_init.c:232:13:MX_XSPI1_Init	3
-../Core/Src/extmemloader_init.c:282:13:MX_XSPI2_Init	4
-../Core/Src/extmemloader_init.c:341:13:MX_GPIO_Init	1
-../Core/Src/extmemloader_init.c:361:6:Error_Handler	1

@@ -1,0 +1,27 @@
+# --- Build Artifacts ---
+Debug/
+Release/
+bin/
+obj/
+
+# --- CubeMX Generated / Temporary Build Files ---
+*.bak
+*.clog
+*.log
+*.elf
+*.bin
+*.hex
+*.map
+*.list
+*.size
+*.su
+*.d
+
+# --- IDE / Toolchain Specific ---
+.settings/
+*.launch
+.gdb_history
+
+# --- Operating System Files ---
+.DS_Store
+Thumbs.db
