@@ -55,6 +55,7 @@ XSPI_HandleTypeDef hxspi1;
 /* Private function prototypes -----------------------------------------------*/
 
 static void MX_GPIO_Init(void);
+static void MX_HPDMA1_Init(void);
 static void MX_SBS_Init(void);
 static void MX_XSPI1_Init(void);
 static void SystemClock_Config(void);
@@ -115,6 +116,8 @@ uint32_t extmemloader_Init()
   /* Initialize all configured peripherals */
 
   MX_GPIO_Init();
+
+  MX_HPDMA1_Init();
 
   MX_SBS_Init();
 
@@ -207,6 +210,36 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief HPDMA1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_HPDMA1_Init(void)
+{
+
+  /* USER CODE BEGIN HPDMA1_Init 0 */
+
+  /* USER CODE END HPDMA1_Init 0 */
+
+  /* Peripheral clock enable */
+  __HAL_RCC_HPDMA1_CLK_ENABLE();
+
+  /* HPDMA1 interrupt Init */
+    HAL_NVIC_SetPriority(HPDMA1_Channel0_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(HPDMA1_Channel0_IRQn);
+    HAL_NVIC_SetPriority(HPDMA1_Channel1_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(HPDMA1_Channel1_IRQn);
+
+  /* USER CODE BEGIN HPDMA1_Init 1 */
+
+  /* USER CODE END HPDMA1_Init 1 */
+  /* USER CODE BEGIN HPDMA1_Init 2 */
+
+  /* USER CODE END HPDMA1_Init 2 */
+
 }
 
 /**

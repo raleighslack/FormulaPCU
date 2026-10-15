@@ -5,10 +5,12 @@
 #include <fonts/GeneratedFont.hpp>
 #include <texts/TypedTextDatabase.hpp>
 
-extern touchgfx::GeneratedFont& getFont_impact_60_4bpp();
+extern touchgfx::GeneratedFont& getFont_Helvetica_Bold_60_4bpp();
+extern touchgfx::GeneratedFont& getFont_Helvetica_135_4bpp();
 
 const touchgfx::Font* touchgfx_fonts[] = {
-    &(getFont_impact_60_4bpp())
+    &(getFont_Helvetica_Bold_60_4bpp()),
+    &(getFont_Helvetica_135_4bpp())
 };
 
 extern const touchgfx::TypedText::TypedTextData typedText_database_DEFAULT[];
@@ -16,6 +18,9 @@ extern const touchgfx::TypedText::TypedTextData* const typedTextDatabaseArray[];
 
 TEXT_LOCATION_FLASH_PRAGMA
 const touchgfx::TypedText::TypedTextData typedText_database_DEFAULT[] TEXT_LOCATION_FLASH_ATTRIBUTE = {
+    { 1, touchgfx::CENTER, touchgfx::TEXT_DIRECTION_LTR },
+    { 0, touchgfx::LEFT, touchgfx::TEXT_DIRECTION_LTR },
+    { 0, touchgfx::LEFT, touchgfx::TEXT_DIRECTION_LTR },
     { 0, touchgfx::LEFT, touchgfx::TEXT_DIRECTION_LTR }
 };
 
@@ -32,7 +37,7 @@ const touchgfx::TypedText::TypedTextData* getInstance(touchgfx::LanguageId id)
 
 uint16_t getInstanceSize()
 {
-    return 0;
+    return sizeof(typedText_database_DEFAULT) / sizeof(touchgfx::TypedText::TypedTextData);
 }
 
 const touchgfx::Font** getFonts()
@@ -52,7 +57,10 @@ void resetFont(touchgfx::FontId fontId)
     switch (fontId)
     {
     case 0:
-        touchgfx_fonts[0] = &(getFont_impact_60_4bpp());
+        touchgfx_fonts[0] = &(getFont_Helvetica_Bold_60_4bpp());
+        break;
+    case 1:
+        touchgfx_fonts[1] = &(getFont_Helvetica_135_4bpp());
         break;
     }
 }

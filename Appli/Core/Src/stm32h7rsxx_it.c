@@ -58,7 +58,9 @@
 
 /* External variables --------------------------------------------------------*/
 extern DMA2D_HandleTypeDef hdma2d;
-extern GPU2D_HandleTypeDef hgpu2d;
+extern DMA_HandleTypeDef handle_HPDMA1_Channel1;
+extern DMA_HandleTypeDef handle_HPDMA1_Channel0;
+extern JPEG_HandleTypeDef hjpeg;
 extern LTDC_HandleTypeDef hltdc;
 /* USER CODE BEGIN EV */
 
@@ -189,6 +191,34 @@ HAL_IncTick();
 /******************************************************************************/
 
 /**
+  * @brief This function handles HPDMA1 Channel 0 global interrupt.
+  */
+void HPDMA1_Channel0_IRQHandler(void)
+{
+  /* USER CODE BEGIN HPDMA1_Channel0_IRQn 0 */
+
+  /* USER CODE END HPDMA1_Channel0_IRQn 0 */
+  HAL_DMA_IRQHandler(&handle_HPDMA1_Channel0);
+  /* USER CODE BEGIN HPDMA1_Channel0_IRQn 1 */
+
+  /* USER CODE END HPDMA1_Channel0_IRQn 1 */
+}
+
+/**
+  * @brief This function handles HPDMA1 Channel 1 global interrupt.
+  */
+void HPDMA1_Channel1_IRQHandler(void)
+{
+  /* USER CODE BEGIN HPDMA1_Channel1_IRQn 0 */
+
+  /* USER CODE END HPDMA1_Channel1_IRQn 0 */
+  HAL_DMA_IRQHandler(&handle_HPDMA1_Channel1);
+  /* USER CODE BEGIN HPDMA1_Channel1_IRQn 1 */
+
+  /* USER CODE END HPDMA1_Channel1_IRQn 1 */
+}
+
+/**
   * @brief This function handles LTDC global interrupt.
   */
 void LTDC_IRQHandler(void)
@@ -231,31 +261,17 @@ void DMA2D_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles GPU2D global interrupt.
+  * @brief This function handles JPEG global interrupt.
   */
-void GPU2D_IRQHandler(void)
+void JPEG_IRQHandler(void)
 {
-  /* USER CODE BEGIN GPU2D_IRQn 0 */
+  /* USER CODE BEGIN JPEG_IRQn 0 */
 
-  /* USER CODE END GPU2D_IRQn 0 */
-  HAL_GPU2D_IRQHandler(&hgpu2d);
-  /* USER CODE BEGIN GPU2D_IRQn 1 */
+  /* USER CODE END JPEG_IRQn 0 */
+  HAL_JPEG_IRQHandler(&hjpeg);
+  /* USER CODE BEGIN JPEG_IRQn 1 */
 
-  /* USER CODE END GPU2D_IRQn 1 */
-}
-
-/**
-  * @brief This function handles GPU2D Error interrupt.
-  */
-void GPU2D_ER_IRQHandler(void)
-{
-  /* USER CODE BEGIN GPU2D_ER_IRQn 0 */
-
-  /* USER CODE END GPU2D_ER_IRQn 0 */
-  HAL_GPU2D_ER_IRQHandler(&hgpu2d);
-  /* USER CODE BEGIN GPU2D_ER_IRQn 1 */
-
-  /* USER CODE END GPU2D_ER_IRQn 1 */
+  /* USER CODE END JPEG_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

@@ -12,6 +12,10 @@ enum LANGUAGES
 
 enum TEXTS
 {
+    T_GEAR,
+    T_GEARWILD,
+    T___SINGLEUSE_PYU9,
+    T___SINGLEUSE_70MO,
     NUMBER_OF_TEXT_KEYS
 };
 

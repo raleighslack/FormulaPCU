@@ -49,7 +49,9 @@ CRC_HandleTypeDef hcrc;
 
 DMA2D_HandleTypeDef hdma2d;
 
-GPU2D_HandleTypeDef hgpu2d;
+JPEG_HandleTypeDef hjpeg;
+DMA_HandleTypeDef handle_HPDMA1_Channel1;
+DMA_HandleTypeDef handle_HPDMA1_Channel0;
 
 LTDC_HandleTypeDef hltdc;
 
@@ -77,14 +79,15 @@ const osThreadAttr_t TouchGFXTask_attributes = {
 
 /* Private function prototypes -----------------------------------------------*/
 static void MX_GPIO_Init(void);
+static void MX_HPDMA1_Init(void);
 static void MX_SPI4_Init(void);
 static void MX_TIM15_Init(void);
 static void MX_LTDC_Init(void);
 static void MX_CRC_Init(void);
 static void MX_DMA2D_Init(void);
-static void MX_GPU2D_Init(void);
 static void MX_CORDIC_Init(void);
 static void MX_ICACHE_GPU2D_Init(void);
+static void MX_JPEG_Init(void);
 void StartDefaultTask(void *argument);
 extern void TouchGFX_Task(void *argument);
 
@@ -127,14 +130,15 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_HPDMA1_Init();
   MX_SPI4_Init();
   MX_TIM15_Init();
   MX_LTDC_Init();
   MX_CRC_Init();
   MX_DMA2D_Init();
-  MX_GPU2D_Init();
   MX_CORDIC_Init();
   MX_ICACHE_GPU2D_Init();
+  MX_JPEG_Init();
   MX_TouchGFX_Init();
   /* Call PreOsInit function */
   MX_TouchGFX_PreOSInit();
@@ -292,28 +296,32 @@ static void MX_DMA2D_Init(void)
 }
 
 /**
-  * @brief GPU2D Initialization Function
+  * @brief HPDMA1 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_GPU2D_Init(void)
+static void MX_HPDMA1_Init(void)
 {
 
-  /* USER CODE BEGIN GPU2D_Init 0 */
+  /* USER CODE BEGIN HPDMA1_Init 0 */
 
-  /* USER CODE END GPU2D_Init 0 */
+  /* USER CODE END HPDMA1_Init 0 */
 
-  /* USER CODE BEGIN GPU2D_Init 1 */
+  /* Peripheral clock enable */
+  __HAL_RCC_HPDMA1_CLK_ENABLE();
 
-  /* USER CODE END GPU2D_Init 1 */
-  hgpu2d.Instance = GPU2D;
-  if (HAL_GPU2D_Init(&hgpu2d) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN GPU2D_Init 2 */
+  /* HPDMA1 interrupt Init */
+    HAL_NVIC_SetPriority(HPDMA1_Channel0_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(HPDMA1_Channel0_IRQn);
+    HAL_NVIC_SetPriority(HPDMA1_Channel1_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(HPDMA1_Channel1_IRQn);
 
-  /* USER CODE END GPU2D_Init 2 */
+  /* USER CODE BEGIN HPDMA1_Init 1 */
+
+  /* USER CODE END HPDMA1_Init 1 */
+  /* USER CODE BEGIN HPDMA1_Init 2 */
+
+  /* USER CODE END HPDMA1_Init 2 */
 
 }
 
@@ -346,6 +354,32 @@ static void MX_ICACHE_GPU2D_Init(void)
   /* USER CODE BEGIN ICACHE_GPU2D_Init 2 */
 
   /* USER CODE END ICACHE_GPU2D_Init 2 */
+
+}
+
+/**
+  * @brief JPEG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_JPEG_Init(void)
+{
+
+  /* USER CODE BEGIN JPEG_Init 0 */
+
+  /* USER CODE END JPEG_Init 0 */
+
+  /* USER CODE BEGIN JPEG_Init 1 */
+
+  /* USER CODE END JPEG_Init 1 */
+  hjpeg.Instance = JPEG;
+  if (HAL_JPEG_Init(&hjpeg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN JPEG_Init 2 */
+
+  /* USER CODE END JPEG_Init 2 */
 
 }
 

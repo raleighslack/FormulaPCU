@@ -21,17 +21,22 @@
 #include <gui/common/FrontendHeap.hpp>
 #include <touchgfx/hal/GPIO.hpp>
 
-#include <touchgfx_nema/GPU2DVectorRenderer.hpp>
+#include <HardwareMJPEGDecoder.hpp>
+#include <DirectFrameBufferVideoController.hpp>
+#include <stm32h7rsxx_hal.h>
 
-namespace touchgfx
-{
-VectorRenderer* VectorRenderer::getInstance()
-{
-    static GPU2DVectorRenderer renderer;
+HardwareMJPEGDecoder mjpegdecoder1;
 
-    return &renderer;
+namespace
+{
+DirectFrameBufferVideoController<1, Bitmap::RGB565> videoController;
 }
-} // namespace touchgfx
+
+//Singleton Factory
+VideoController& VideoController::getInstance()
+{
+    return videoController;
+}
 
 #include "stm32h7rsxx.h"
 #include "stm32h7rsxx_hal_ltdc.h"
@@ -49,30 +54,37 @@ static uint16_t lcd_int_porch_line;
 
 void TouchGFXGeneratedHAL::initialize()
 {
-    HALGPU2D::initialize(8196);
+    HAL::initialize();
     registerEventListener(*(Application::getInstance()));
     setFrameBufferStartAddresses((void*)frameBuf, (void*)(frameBuf + sizeof(frameBuf) / (sizeof(uint32_t) * 2)), (void*)0);
+
+    /*
+     * Add DMA2D to hardware decoder
+     */
+    mjpegdecoder1.addDMA(dma);
+
+    /*
+     * Add hardware decoder to video controller
+     */
+    videoController.addDecoder(mjpegdecoder1, 0);
 }
 
 void TouchGFXGeneratedHAL::configureInterrupts()
 {
     NVIC_SetPriority(DMA2D_IRQn, 9);
     NVIC_SetPriority(LTDC_IRQn, 9);
-    NVIC_SetPriority(GPU2D_IRQn, 9);
 }
 
 void TouchGFXGeneratedHAL::enableInterrupts()
 {
     NVIC_EnableIRQ(DMA2D_IRQn);
     NVIC_EnableIRQ(LTDC_IRQn);
-    NVIC_EnableIRQ(GPU2D_IRQn);
 }
 
 void TouchGFXGeneratedHAL::disableInterrupts()
 {
     NVIC_DisableIRQ(DMA2D_IRQn);
     NVIC_DisableIRQ(LTDC_IRQn);
-    NVIC_DisableIRQ(GPU2D_IRQn);
 }
 
 void TouchGFXGeneratedHAL::enableLCDControllerInterrupt()
@@ -88,17 +100,12 @@ void TouchGFXGeneratedHAL::enableLCDControllerInterrupt()
 
 bool TouchGFXGeneratedHAL::beginFrame()
 {
-    return HALGPU2D::beginFrame();
+    return HAL::beginFrame();
 }
 
 void TouchGFXGeneratedHAL::endFrame()
 {
-    HALGPU2D::endFrame();
-}
-
-void TouchGFXGeneratedHAL::submitGPU2D()
-{
-    HALGPU2D::submitExecBuffer();
+    HAL::endFrame();
 }
 
 uint16_t* TouchGFXGeneratedHAL::getTFTFrameBuffer() const
@@ -116,12 +123,12 @@ void TouchGFXGeneratedHAL::setTFTFrameBuffer(uint16_t* adr)
 
 void TouchGFXGeneratedHAL::flushFrameBuffer(const touchgfx::Rect& rect)
 {
-    HALGPU2D::flushFrameBuffer(rect);
+    HAL::flushFrameBuffer(rect);
 }
 
 bool TouchGFXGeneratedHAL::blockCopy(void* RESTRICT dest, const void* RESTRICT src, uint32_t numBytes)
 {
-    return HALGPU2D::blockCopy(dest, src, numBytes);
+    return HAL::blockCopy(dest, src, numBytes);
 }
 
 void TouchGFXGeneratedHAL::InvalidateCache()
@@ -148,15 +155,6 @@ void TouchGFXGeneratedHAL::FlushCache()
     {
         SCB_CleanInvalidateDCache();
     }
-}
-
-void TouchGFXGeneratedHAL::InvalidateTextureCache()
-{
-    // Hook to invalidate texture cache(s) prior to drawing to a framebuffer.
-    //
-    // When drawing into other buffers in RAM (e.g., dynamic bitmaps), the GPU2D
-    // texture cache may be incoherent with the main memory.
-    HAL_ICACHE_Invalidate();
 }
 
 extern "C"

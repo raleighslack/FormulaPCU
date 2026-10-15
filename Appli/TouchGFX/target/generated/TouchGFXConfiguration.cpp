@@ -20,13 +20,7 @@
 #include <fonts/ApplicationFontProvider.hpp>
 #include <gui/common/FrontendHeap.hpp>
 #include <BitmapDatabase.hpp>
-#include <touchgfx/VectorFontRendererImpl.hpp>
-#include <touchgfx_nema/LCDGPU2D_AXI.hpp>
-extern "C"
-{
-#include <nema_hal.h>
-#include <nema_vg.h>
-}
+#include <platform/driver/lcd/LCD16bpp.hpp>
 #include <STM32DMA.hpp>
 #include <TouchGFXHAL.hpp>
 #include <STM32TouchController.hpp>
@@ -38,8 +32,7 @@ extern "C" void touchgfx_components_init();
 
 static STM32TouchController tc;
 static STM32DMA dma;
-static LCDGPU2D_AXI display;
-static VectorFontRendererImpl vectorFontRenderer;
+static LCD16bpp display;
 
 static ApplicationFontProvider fontProvider;
 static Texts texts;
@@ -50,10 +43,6 @@ void touchgfx_init()
     Bitmap::registerBitmapDatabase(BitmapDatabase::getInstance(), BitmapDatabase::getInstanceSize());
     TypedText::registerTexts(&texts);
     Texts::setLanguage(0);
-
-    display.setFrameBufferFormat(Bitmap::RGB565);
-
-    display.setVectorFontRenderer(&vectorFontRenderer);
 
     FontManager::setFontProvider(&fontProvider);
 
@@ -71,14 +60,6 @@ void touchgfx_init()
 
 void touchgfx_components_init()
 {
-    nema_init();
-    nema_reg_write(0xFFC, 0x7E); /* Enable bus error interrupts */
-    nema_vg_init_stencil_pool(800, 480, 1);
-    nema_vg_handle_large_coords(1, 1);
-    nema_ext_hold_enable(2);
-    nema_ext_hold_irq_enable(2);
-    nema_ext_hold_enable(3);
-    nema_ext_hold_irq_enable(3);
 }
 
 void touchgfx_taskEntry()

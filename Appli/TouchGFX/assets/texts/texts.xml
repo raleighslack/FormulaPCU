@@ -4,10 +4,25 @@
     <Language Id="GB" />
   </Languages>
   <Texts>
-    <TextGroup Id="Group1" />
-    <TextGroup Id="Unsorted" />
+    <TextGroup Id="Group1">
+      <Text Id="gear" Alignment="Center" TypographyId="Gear">
+        <Translation Language="GB">&lt;&gt;</Translation>
+      </Text>
+    </TextGroup>
+    <TextGroup Id="Unsorted">
+      <Text Id="gearwild" Alignment="Left" TypographyId="Large">
+        <Translation Language="GB">N</Translation>
+      </Text>
+      <Text Id="__SingleUse_PYU9" Alignment="Left" TypographyId="Large">
+        <Translation Language="GB">+0.01</Translation>
+      </Text>
+      <Text Id="__SingleUse_70MO" Alignment="Left" TypographyId="Large">
+        <Translation Language="GB">-0.01</Translation>
+      </Text>
+    </TextGroup>
   </Texts>
   <Typographies>
-    <Typography Id="Large" Font="impact.ttf" Size="60" Bpp="4" IsVector="no" Direction="LTR" FallbackCharacter="?" />
+    <Typography Id="Large" Font="Helvetica-Bold.ttf" Size="60" Bpp="4" IsVector="no" Direction="LTR" FallbackCharacter="?" WildcardCharacterRanges="A-Z,0-9" />
+    <Typography Id="Gear" Font="Helvetica.ttf" Size="135" Bpp="4" IsVector="no" Direction="LTR" FallbackCharacter="?" WildcardCharacterRanges="A-Z,0-9" />
   </Typographies>
 </TextDatabase>

@@ -172,7 +172,15 @@ SECTIONS
     *(TouchGFX_Framebuffer)
     *(TouchGFX_Framebuffer*)
     . = ALIGN(8);
-  } > EXTRAM   /* Replace > RAM with your specific memory region like > SDRAM or > RAM_D1 */
+  } > EXTRAM 
+  
+  .Video_RGB_Buffer (NOLOAD) :
+  {
+    . = ALIGN(8);
+    *(Video_RGB_Buffer)
+    *(Video_RGB_Buffer*)
+    . = ALIGN(8);
+  } > EXTRAM 
 
   /* Uninitialized data section into "RAM" Ram type memory */
   . = ALIGN(4);

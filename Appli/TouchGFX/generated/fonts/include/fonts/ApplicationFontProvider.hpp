@@ -14,12 +14,14 @@ class FlashDataReader;
 struct Typography
 {
     static const touchgfx::FontId LARGE = 0;
+    static const touchgfx::FontId GEAR = 1;
 };
 
 struct TypographyFontIndex
 {
-    static const touchgfx::FontId LARGE = 0; // impact_60_4bpp
-    static const uint16_t NUMBER_OF_FONTS = 1;
+    static const touchgfx::FontId LARGE = 0; // Helvetica_Bold_60_4bpp
+    static const touchgfx::FontId GEAR = 1;  // Helvetica_135_4bpp
+    static const uint16_t NUMBER_OF_FONTS = 2;
 };
 
 class ApplicationFontProvider : public touchgfx::FontProvider

@@ -22,6 +22,9 @@
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
+extern DMA_HandleTypeDef handle_HPDMA1_Channel1;
+
+extern DMA_HandleTypeDef handle_HPDMA1_Channel0;
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
@@ -219,55 +222,120 @@ void HAL_DMA2D_MspDeInit(DMA2D_HandleTypeDef* hdma2d)
 }
 
 /**
-  * @brief GPU2D MSP Initialization
+  * @brief JPEG MSP Initialization
   * This function configures the hardware resources used in this example
-  * @param hgpu2d: GPU2D handle pointer
+  * @param hjpeg: JPEG handle pointer
   * @retval None
   */
-void HAL_GPU2D_MspInit(GPU2D_HandleTypeDef* hgpu2d)
+void HAL_JPEG_MspInit(JPEG_HandleTypeDef* hjpeg)
 {
-  if(hgpu2d->Instance==GPU2D)
+  DMA_DataHandlingConfTypeDef DataHandlingConfig;
+  if(hjpeg->Instance==JPEG)
   {
-    /* USER CODE BEGIN GPU2D_MspInit 0 */
+    /* USER CODE BEGIN JPEG_MspInit 0 */
 
-    /* USER CODE END GPU2D_MspInit 0 */
+    /* USER CODE END JPEG_MspInit 0 */
     /* Peripheral clock enable */
-    __HAL_RCC_GPU2D_CLK_ENABLE();
-    /* GPU2D interrupt Init */
-    HAL_NVIC_SetPriority(GPU2D_IRQn, 5, 0);
-    HAL_NVIC_EnableIRQ(GPU2D_IRQn);
-    HAL_NVIC_SetPriority(GPU2D_ER_IRQn, 5, 0);
-    HAL_NVIC_EnableIRQ(GPU2D_ER_IRQn);
-    /* USER CODE BEGIN GPU2D_MspInit 1 */
+    __HAL_RCC_JPEG_CLK_ENABLE();
 
-    /* USER CODE END GPU2D_MspInit 1 */
+    /* JPEG DMA Init */
+    /* HPDMA1_REQUEST_JPEG_TX Init */
+    handle_HPDMA1_Channel1.Instance = HPDMA1_Channel1;
+    handle_HPDMA1_Channel1.Init.Request = HPDMA1_REQUEST_JPEG_TX;
+    handle_HPDMA1_Channel1.Init.BlkHWRequest = DMA_BREQ_SINGLE_BURST;
+    handle_HPDMA1_Channel1.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    handle_HPDMA1_Channel1.Init.SrcInc = DMA_SINC_FIXED;
+    handle_HPDMA1_Channel1.Init.DestInc = DMA_DINC_INCREMENTED;
+    handle_HPDMA1_Channel1.Init.SrcDataWidth = DMA_SRC_DATAWIDTH_WORD;
+    handle_HPDMA1_Channel1.Init.DestDataWidth = DMA_DEST_DATAWIDTH_WORD;
+    handle_HPDMA1_Channel1.Init.Priority = DMA_HIGH_PRIORITY;
+    handle_HPDMA1_Channel1.Init.SrcBurstLength = 8;
+    handle_HPDMA1_Channel1.Init.DestBurstLength = 8;
+    handle_HPDMA1_Channel1.Init.TransferAllocatedPort = DMA_SRC_ALLOCATED_PORT1|DMA_DEST_ALLOCATED_PORT0;
+    handle_HPDMA1_Channel1.Init.TransferEventMode = DMA_TCEM_BLOCK_TRANSFER;
+    handle_HPDMA1_Channel1.Init.Mode = DMA_NORMAL;
+    if (HAL_DMA_Init(&handle_HPDMA1_Channel1) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(hjpeg, hdmaout, handle_HPDMA1_Channel1);
+
+    if (HAL_DMA_ConfigChannelAttributes(&handle_HPDMA1_Channel1, DMA_CHANNEL_NPRIV) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    /* HPDMA1_REQUEST_JPEG_RX Init */
+    handle_HPDMA1_Channel0.Instance = HPDMA1_Channel0;
+    handle_HPDMA1_Channel0.Init.Request = HPDMA1_REQUEST_JPEG_RX;
+    handle_HPDMA1_Channel0.Init.BlkHWRequest = DMA_BREQ_SINGLE_BURST;
+    handle_HPDMA1_Channel0.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    handle_HPDMA1_Channel0.Init.SrcInc = DMA_SINC_INCREMENTED;
+    handle_HPDMA1_Channel0.Init.DestInc = DMA_DINC_FIXED;
+    handle_HPDMA1_Channel0.Init.SrcDataWidth = DMA_SRC_DATAWIDTH_BYTE;
+    handle_HPDMA1_Channel0.Init.DestDataWidth = DMA_DEST_DATAWIDTH_WORD;
+    handle_HPDMA1_Channel0.Init.Priority = DMA_HIGH_PRIORITY;
+    handle_HPDMA1_Channel0.Init.SrcBurstLength = 8;
+    handle_HPDMA1_Channel0.Init.DestBurstLength = 8;
+    handle_HPDMA1_Channel0.Init.TransferAllocatedPort = DMA_SRC_ALLOCATED_PORT0|DMA_DEST_ALLOCATED_PORT1;
+    handle_HPDMA1_Channel0.Init.TransferEventMode = DMA_TCEM_BLOCK_TRANSFER;
+    handle_HPDMA1_Channel0.Init.Mode = DMA_NORMAL;
+    if (HAL_DMA_Init(&handle_HPDMA1_Channel0) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    DataHandlingConfig.DataExchange = DMA_EXCHANGE_NONE;
+    DataHandlingConfig.DataAlignment = DMA_DATA_PACK;
+    if (HAL_DMAEx_ConfigDataHandling(&handle_HPDMA1_Channel0, &DataHandlingConfig) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(hjpeg, hdmain, handle_HPDMA1_Channel0);
+
+    if (HAL_DMA_ConfigChannelAttributes(&handle_HPDMA1_Channel0, DMA_CHANNEL_NPRIV) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    /* JPEG interrupt Init */
+    HAL_NVIC_SetPriority(JPEG_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(JPEG_IRQn);
+    /* USER CODE BEGIN JPEG_MspInit 1 */
+
+    /* USER CODE END JPEG_MspInit 1 */
 
   }
 
 }
 
 /**
-  * @brief GPU2D MSP De-Initialization
+  * @brief JPEG MSP De-Initialization
   * This function freeze the hardware resources used in this example
-  * @param hgpu2d: GPU2D handle pointer
+  * @param hjpeg: JPEG handle pointer
   * @retval None
   */
-void HAL_GPU2D_MspDeInit(GPU2D_HandleTypeDef* hgpu2d)
+void HAL_JPEG_MspDeInit(JPEG_HandleTypeDef* hjpeg)
 {
-  if(hgpu2d->Instance==GPU2D)
+  if(hjpeg->Instance==JPEG)
   {
-    /* USER CODE BEGIN GPU2D_MspDeInit 0 */
+    /* USER CODE BEGIN JPEG_MspDeInit 0 */
 
-    /* USER CODE END GPU2D_MspDeInit 0 */
+    /* USER CODE END JPEG_MspDeInit 0 */
     /* Peripheral clock disable */
-    __HAL_RCC_GPU2D_CLK_DISABLE();
+    __HAL_RCC_JPEG_CLK_DISABLE();
 
-    /* GPU2D interrupt DeInit */
-    HAL_NVIC_DisableIRQ(GPU2D_IRQn);
-    HAL_NVIC_DisableIRQ(GPU2D_ER_IRQn);
-    /* USER CODE BEGIN GPU2D_MspDeInit 1 */
+    /* JPEG DMA DeInit */
+    HAL_DMA_DeInit(hjpeg->hdmaout);
+    HAL_DMA_DeInit(hjpeg->hdmain);
 
-    /* USER CODE END GPU2D_MspDeInit 1 */
+    /* JPEG interrupt DeInit */
+    HAL_NVIC_DisableIRQ(JPEG_IRQn);
+    /* USER CODE BEGIN JPEG_MspDeInit 1 */
+
+    /* USER CODE END JPEG_MspDeInit 1 */
   }
 
 }

@@ -8,8 +8,7 @@
 
 enum SVGImages
 {
-    SVG_MERCEDES_ID = 0,
-    NUMBER_OF_SVG_IMAGES = 1
+    NUMBER_OF_SVG_IMAGES = 0
 };
 
 namespace SVGDatabase

@@ -53,11 +53,12 @@ void BusFault_Handler(void);
 void UsageFault_Handler(void);
 void DebugMon_Handler(void);
 void SysTick_Handler(void);
+void HPDMA1_Channel0_IRQHandler(void);
+void HPDMA1_Channel1_IRQHandler(void);
 void LTDC_IRQHandler(void);
 void LTDC_ER_IRQHandler(void);
 void DMA2D_IRQHandler(void);
-void GPU2D_IRQHandler(void);
-void GPU2D_ER_IRQHandler(void);
+void JPEG_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */
