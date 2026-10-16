@@ -24,7 +24,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "tusb.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -59,6 +59,8 @@ SPI_HandleTypeDef hspi4;
 
 TIM_HandleTypeDef htim15;
 
+PCD_HandleTypeDef hpcd_USB_OTG_FS;
+
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
@@ -71,6 +73,13 @@ osThreadId_t TouchGFXTaskHandle;
 const osThreadAttr_t TouchGFXTask_attributes = {
   .name = "TouchGFXTask",
   .stack_size = 4096 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for TinyUSB */
+osThreadId_t TinyUSBHandle;
+const osThreadAttr_t TinyUSB_attributes = {
+  .name = "TinyUSB",
+  .stack_size = 2048 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* USER CODE BEGIN PV */
@@ -88,8 +97,10 @@ static void MX_DMA2D_Init(void);
 static void MX_CORDIC_Init(void);
 static void MX_ICACHE_GPU2D_Init(void);
 static void MX_JPEG_Init(void);
+static void MX_USB_OTG_FS_PCD_Init(void);
 void StartDefaultTask(void *argument);
 extern void TouchGFX_Task(void *argument);
+void usb_device_task(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -139,6 +150,7 @@ int main(void)
   MX_CORDIC_Init();
   MX_ICACHE_GPU2D_Init();
   MX_JPEG_Init();
+  MX_USB_OTG_FS_PCD_Init();
   MX_TouchGFX_Init();
   /* Call PreOsInit function */
   MX_TouchGFX_PreOSInit();
@@ -146,6 +158,12 @@ int main(void)
   LTDC->IER |= LTDC_IER_LIE;
   HAL_TIM_PWM_Start(&htim15, TIM_CHANNEL_2);
   HAL_GPIO_WritePin(GPIOG, GPIO_PIN_14, GPIO_PIN_SET);
+
+  tusb_rhport_init_t dev_init = {
+		  .role = TUSB_ROLE_DEVICE,
+		  .speed = TUSB_SPEED_FULL
+  };
+  tusb_init(0, &dev_init);
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -173,6 +191,9 @@ int main(void)
 
   /* creation of TouchGFXTask */
   TouchGFXTaskHandle = osThreadNew(TouchGFX_Task, NULL, &TouchGFXTask_attributes);
+
+  /* creation of TinyUSB */
+  TinyUSBHandle = osThreadNew(usb_device_task, NULL, &TinyUSB_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -560,6 +581,42 @@ static void MX_TIM15_Init(void)
 }
 
 /**
+  * @brief USB_OTG_FS Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USB_OTG_FS_PCD_Init(void)
+{
+
+  /* USER CODE BEGIN USB_OTG_FS_PCD_Init 0 */
+
+  /* USER CODE END USB_OTG_FS_PCD_Init 0 */
+
+  /* USER CODE BEGIN USB_OTG_FS_PCD_Init 1 */
+
+  /* USER CODE END USB_OTG_FS_PCD_Init 1 */
+  hpcd_USB_OTG_FS.Instance = USB_OTG_FS;
+  hpcd_USB_OTG_FS.Init.dev_endpoints = 6;
+  hpcd_USB_OTG_FS.Init.speed = PCD_SPEED_FULL;
+  hpcd_USB_OTG_FS.Init.phy_itface = PCD_PHY_EMBEDDED;
+  hpcd_USB_OTG_FS.Init.dma_enable = DISABLE;
+  hpcd_USB_OTG_FS.Init.Sof_enable = DISABLE;
+  hpcd_USB_OTG_FS.Init.low_power_enable = DISABLE;
+  hpcd_USB_OTG_FS.Init.lpm_enable = DISABLE;
+  hpcd_USB_OTG_FS.Init.battery_charging_enable = ENABLE;
+  hpcd_USB_OTG_FS.Init.use_dedicated_ep1 = DISABLE;
+  hpcd_USB_OTG_FS.Init.vbus_sensing_enable = ENABLE;
+  if (HAL_PCD_Init(&hpcd_USB_OTG_FS) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USB_OTG_FS_PCD_Init 2 */
+
+  /* USER CODE END USB_OTG_FS_PCD_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -576,6 +633,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
+  __HAL_RCC_GPIOM_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
@@ -595,7 +653,20 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_Delay(uint32_t Delay)
+{
+  if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+    // FreeRTOS is running, use its delay
+    osDelay(Delay);
+  } else {
+    // OS not started, interrupts are hijacked. Use CPU cycle burner.
+    // SystemCoreClock is your CPU speed. This roughly approximates 1ms.
+    __IO uint32_t count = Delay * (SystemCoreClock / 4000U);
+    while(count--) {
+      __NOP();
+    }
+  }
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -614,6 +685,24 @@ void StartDefaultTask(void *argument)
     osDelay(1);
   }
   /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_usb_device_task */
+/**
+* @brief Function implementing the TinyUSB thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_usb_device_task */
+void usb_device_task(void *argument)
+{
+  /* USER CODE BEGIN usb_device_task */
+  /* Infinite loop */
+  for(;;)
+  {
+    tud_task();
+  }
+  /* USER CODE END usb_device_task */
 }
 
 /**

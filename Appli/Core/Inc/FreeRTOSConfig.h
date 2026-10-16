@@ -172,6 +172,10 @@ standard names. */
 
 /* USER CODE BEGIN Defines */
 /* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */
+#ifndef pdTICKS_TO_MS
+    #define pdTICKS_TO_MS( xTicks ) ( ( ( TickType_t ) ( xTicks ) * 1000u ) / configTICK_RATE_HZ )
+#endif
+
 /* USER CODE END Defines */
 
 #endif /* __FREERTOS_CONFIG_H */
