@@ -667,6 +667,175 @@ void HAL_Delay(uint32_t Delay)
     }
   }
 }
+void tud_cdc_rx_cb(uint8_t itf) {
+    static uint8_t rxBuf[512];
+    static uint32_t rx_len = 0;
+
+    if (tud_cdc_n_available(0)) {
+        // Read data into buffer without overflowing
+        uint32_t space_left = sizeof(rxBuf) - rx_len;
+        if (space_left > 0) {
+            uint32_t count = tud_cdc_n_read(0, rxBuf + rx_len, space_left);
+            rx_len += count;
+        }
+    }
+
+    // Process ALL complete messages currently waiting in the buffer
+    while (rx_len > 0) {
+        int i = 0;
+
+        // 1. Skip and remove any 0xFF preamble bytes
+        while (i < rx_len && rxBuf[i] == 0xFF) {
+            i++;
+        }
+        if (i > 0) {
+            rx_len -= i;
+            memmove(rxBuf, rxBuf + i, rx_len);
+            continue; // Restart loop with a clean start
+        }
+
+        // 2. Ensure we have at least a 5-character command
+        if (rx_len < 5) {
+            break; // Wait for more USB data
+        }
+
+        char message[6];
+        for (int j = 0; j < 5; j++) {
+            message[j] = (char)rxBuf[j];
+        }
+        message[5] = '\0';
+
+        uint32_t bytes_to_consume = 0;
+        int ready_to_process = 0;
+
+        // 3. Determine command boundaries based on footers
+        if (strncmp(message, "sleds", 5) == 0) {
+            // Search for the 0xFF 0xFE 0xFD footer
+            for (uint32_t j = 5; j < rx_len - 2; j++) {
+                if (rxBuf[j] == 0xFF && rxBuf[j+1] == 0xFE && rxBuf[j+2] == 0xFD) {
+                    bytes_to_consume = j + 3; // Consume up to and including the footer
+                    ready_to_process = 1;
+                    break;
+                }
+            }
+        } else {
+            // Other commands have no footer and are exactly 5 characters
+            bytes_to_consume = 5;
+            ready_to_process = 1;
+        }
+
+        // If we haven't received the full command yet, stop processing and wait for next USB packet
+        if (!ready_to_process) {
+            if (rx_len >= sizeof(rxBuf)) {
+                rx_len = 0; // Prevent deadlock if buffer fills with garbage
+            }
+            break;
+        }
+
+        // 4. Process the valid command
+        if (strncmp(message, "proto", 5) == 0) {
+            tud_cdc_n_write_str(0, "SIMHUB_1.3\r\n");
+            tud_cdc_n_write_flush(0);
+        }
+        else if (strncmp(message, "sleds", 5) == 0) {
+            uint8_t led_data[4 + (21 * 4) + 4] = {0};
+
+            int buf_idx = 5;
+
+            // Dynamically calculate how many LEDs were sent before the footer (max 21)
+            int payload_len = bytes_to_consume - 5 - 3; // Total bytes minus "sleds" and footer
+            int num_leds = payload_len / 3;
+            if (num_leds > 21) num_leds = 21;
+
+            for (int j = 0; j < num_leds; j++) {
+                int k = 4 + j * 4;
+
+                // Extract Green, Blue, Red based on SimHub output
+                uint8_t g = rxBuf[buf_idx++];
+                uint8_t b = rxBuf[buf_idx++];
+                uint8_t r = rxBuf[buf_idx++];
+
+                led_data[k + 0] = 0xE0 | 4;  // max brightness
+                led_data[k + 1] = r;         // Send SimHub's Red to physical Red
+                led_data[k + 2] = b;         // Send SimHub's Blue to physical Blue
+                led_data[k + 3] = g;         // Send SimHub's Green to physical Green
+            }
+
+            // End frame
+            for (int j = 88; j < sizeof(led_data); j++) {
+                led_data[j] = 0xFF;
+            }
+
+            tud_cdc_n_write_str(0, "\r\n"); // Keep this \r\n to acknowledge receipt back to the host
+            tud_cdc_n_write_flush(0);
+            HAL_SPI_Transmit(&hspi4, led_data, sizeof(led_data), HAL_MAX_DELAY);
+        }
+        else if (strncmp(message, "dname", 5) == 0) {
+            tud_cdc_n_write_str(0, "TestF1\r\n");
+            tud_cdc_n_write_flush(0);
+        }
+        else if (strncmp(message, "bname", 5) == 0) {
+            tud_cdc_n_write_str(0, "TAR\r\n");
+            tud_cdc_n_write_flush(0);
+        }
+        else if (strncmp(message, "dpict", 5) == 0) {
+            tud_cdc_n_write_str(0, "https://simhubdash.com/devices/nopicture.png\r\n");
+            tud_cdc_n_write_flush(0);
+        }
+        else if (strncmp(message, "ddete", 5) == 0) {
+            tud_cdc_n_write_str(0, "1\r\n");
+            tud_cdc_n_write_flush(0);
+        }
+        else if (strncmp(message, "sdete", 5) == 0) {
+            tud_cdc_n_write_str(0, "0\r\n");
+            tud_cdc_n_write_flush(0);
+        }
+        else if (strncmp(message, "dtype", 5) == 0) {
+            tud_cdc_n_write_str(0, "1\r\n");
+            tud_cdc_n_write_flush(0);
+        }
+        else if (strncmp(message, "ulock", 5) == 0) {
+            tud_cdc_n_write_str(0, "0, 15000\r\n");
+            tud_cdc_n_write_flush(0);
+        }
+        else if (strncmp(message, "snumb", 5) == 0) {
+            tud_cdc_n_write_str(0, "ABCDEFGHIJKLMNOPQRST\r\n");
+            tud_cdc_n_write_flush(0);
+        }
+        else if (strncmp(message, "rnumb", 5) == 0) {
+            tud_cdc_n_write_str(0, "ABCDEFGHIJKLMNOPQRST\r\n");
+            tud_cdc_n_write_flush(0);
+        }
+        else if (strncmp(message, "ledsc", 5) == 0) {
+            tud_cdc_n_write_str(0, "21\r\n");
+            tud_cdc_n_write_flush(0);
+        }
+        else if (strncmp(message, "ledsl", 5) == 0) {
+            tud_cdc_n_write_str(0, "\r\n");
+            tud_cdc_n_write_flush(0);
+        }
+        else if (strncmp(message, "matxc", 5) == 0) {
+            tud_cdc_n_write_str(0, "0\r\n");
+            tud_cdc_n_write_flush(0);
+        }
+        else if (strncmp(message, "butdc", 5) == 0) {
+            tud_cdc_n_write_str(0, "\r\n");
+            tud_cdc_n_write_flush(0);
+        }
+        else if (strncmp(message, "fansc", 5) == 0) {
+            tud_cdc_n_write_str(0, "0\r\n");
+            tud_cdc_n_write_flush(0);
+        }
+
+        // 5. Shift the buffer left to queue up the next command
+        if (rx_len > bytes_to_consume) {
+            memmove(rxBuf, rxBuf + bytes_to_consume, rx_len - bytes_to_consume);
+            rx_len -= bytes_to_consume;
+        } else {
+            rx_len = 0;
+        }
+    }
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
